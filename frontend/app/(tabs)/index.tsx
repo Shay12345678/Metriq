@@ -41,31 +41,20 @@ export default function Home() {
 
       {/* Generate Meal Button */}
       <TouchableOpacity
-        onPress={() => router.push("/generate")} // ✅ relative path works in tabs
+        onPress={() => router.push("/goals")}
         style={{
           backgroundColor: "#22c55e",
           paddingVertical: 16,
           paddingHorizontal: 40,
           borderRadius: 18,
-          marginTop: 10,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 3.84,
-          elevation: 5,
+          marginTop: 10
         }}
       >
-        <Text
-          style={{
-            color: "#020617",
-            fontSize: 16,
-            fontWeight: "700",
-            textAlign: "center",
-          }}
-        >
-          Generate a Meal
+        <Text style={{ color: "#020617", fontSize: 16, fontWeight: "700" }}>
+          Get Started
         </Text>
       </TouchableOpacity>
+
 
       {/* Optional: small footer text */}
       <Text

@@ -1,72 +1,134 @@
-import { View, Text, TouchableOpacity } from "react-native";
-import { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, FlatList } from "react-native";
+import { useState, useEffect } from "react";
 
-export default function Generate() {
-  const [goal, setGoal] = useState("balanced");
-  const [meal, setMeal] = useState<any>(null);
+export default function GenerateScreen() {
+  const [query, setQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [ingredients, setIngredients] = useState<{ name: string; quantity?: string }[]>([]);
 
-  const getMeal = async () => {
-    const res = await fetch(`http://localhost:3000/meal?goal=${goal}`);
-    const data = await res.json();
-    setMeal(data);
+  // Fetch foods from backend
+  useEffect(() => {
+    if (query.length === 0) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/search?q=${query}`);
+        const data = await res.json();
+        setSearchResults(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }, 300); // debounce 300ms
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const addIngredient = (name: string) => {
+    if (ingredients.find((i) => i.name === name)) return;
+    setIngredients([...ingredients, { name }]);
+    setQuery("");
+    setSearchResults([]);
+  };
+
+  const removeIngredient = (name: string) => {
+    setIngredients(ingredients.filter((i) => i.name !== name));
+  };
+
+  const updateQuantity = (name: string, qty: string) => {
+    setIngredients(
+      ingredients.map((i) => (i.name === name ? { ...i, quantity: qty } : i))
+    );
   };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#020617", padding: 24 }}>
-      <Text style={{ color: "white", fontSize: 24, fontWeight: "700" }}>
-        Your Goal
+      <Text style={{ fontSize: 28, fontWeight: "800", color: "white", marginBottom: 8 }}>
+        Build your meal
+      </Text>
+      <Text style={{ color: "#94a3b8", marginBottom: 16 }}>
+        Search USDA foods and add to your list
       </Text>
 
-      <View style={{ flexDirection: "row", marginVertical: 20 }}>
-        {["muscle", "fatloss", "balanced"].map(g => (
-          <TouchableOpacity
-            key={g}
-            onPress={() => setGoal(g)}
-            style={{
-              backgroundColor: goal === g ? "#22c55e" : "#0f172a",
-              padding: 12,
-              borderRadius: 14,
-              marginRight: 10
-            }}
-          >
-            <Text style={{ color: goal === g ? "#020617" : "white" }}>
-              {g.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <TouchableOpacity
-        onPress={getMeal}
+      <TextInput
+        value={query}
+        onChangeText={setQuery}
+        placeholder="Search ingredients"
+        placeholderTextColor="#64748b"
         style={{
-          backgroundColor: "#22c55e",
-          padding: 16,
-          borderRadius: 18,
-          alignItems: "center"
+          backgroundColor: "#020617",
+          borderWidth: 1,
+          borderColor: "#1e293b",
+          borderRadius: 14,
+          padding: 14,
+          color: "white",
+          marginBottom: 12
         }}
-      >
-        <Text style={{ fontWeight: "700", color: "#020617" }}>
-          Generate Meal
-        </Text>
-      </TouchableOpacity>
+      />
 
-      {meal && (
-        <View style={{
-          marginTop: 30,
-          backgroundColor: "#0f172a",
-          padding: 20,
-          borderRadius: 18
-        }}>
-          <Text style={{ color: "white", fontSize: 18 }}>
-            {meal.name}
-          </Text>
-          <Text style={{ color: "#94a3b8" }}>
-            🔥 {meal.calories} cal
-          </Text>
-          <Text style={{ color: "#94a3b8" }}>
-            💪 {meal.protein}g protein
-          </Text>
+      {searchResults.length > 0 && (
+        <View style={{ marginBottom: 16 }}>
+          {searchResults.map((food) => (
+            <TouchableOpacity
+              key={food.id}
+              onPress={() => addIngredient(food.name)}
+              style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#1e293b" }}
+            >
+              <Text style={{ color: "white" }}>{food.name}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
+      )}
+
+      <FlatList
+        data={ingredients}
+        keyExtractor={(item) => item.name}
+        ListEmptyComponent={
+          <Text style={{ color: "#64748b", marginTop: 20 }}>No ingredients added yet</Text>
+        }
+        renderItem={({ item }) => (
+          <View style={{ borderWidth: 1, borderColor: "#1e293b", borderRadius: 14, padding: 14, marginBottom: 12 }}>
+            <Text style={{ color: "white", fontWeight: "600" }}>{item.name}</Text>
+
+            <TextInput
+              placeholder="Quantity (grams, optional)"
+              placeholderTextColor="#64748b"
+              keyboardType="numeric"
+              value={item.quantity}
+              onChangeText={(text) => updateQuantity(item.name, text)}
+              style={{
+                marginTop: 8,
+                borderWidth: 1,
+                borderColor: "#1e293b",
+                borderRadius: 10,
+                padding: 10,
+                color: "white"
+              }}
+            />
+
+            <TouchableOpacity onPress={() => removeIngredient(item.name)} style={{ marginTop: 10 }}>
+              <Text style={{ color: "#ef4444", fontWeight: "600" }}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+
+      {ingredients.length > 0 && (
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#22c55e",
+            paddingVertical: 16,
+            borderRadius: 18,
+            alignItems: "center",
+            marginTop: 10
+          }}
+        >
+          <Text style={{ color: "#020617", fontWeight: "700", fontSize: 16 }}>
+            Generate Meals
+          </Text>
+        </TouchableOpacity>
       )}
     </View>
   );

@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const fetch = require("node-fetch");
 
 const app = express();
 const PORT = 3000;
@@ -9,15 +10,9 @@ app.use(express.json());
 
 const USDA_API_KEY = "2NNBrpjZhuGdXhx98EnbZaNsTBTqG5F6SX8OsmtT";
 
-const MEALS = {
-  muscle: "chicken breast",
-  fatloss: "grilled chicken salad",
-  balanced: "chicken rice bowl"
-};
-
-app.get("/meal", async (req, res) => {
-  const goal = req.query.goal || "balanced";
-  const query = MEALS[goal];
+app.get("/search", async (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.status(400).json({ error: "Query required" });
 
   try {
     const response = await fetch(
@@ -25,28 +20,22 @@ app.get("/meal", async (req, res) => {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, pageSize: 1 })
+        body: JSON.stringify({ query, pageSize: 10 })
       }
     );
 
     const data = await response.json();
-    const food = data.foods[0];
+    const foods = data.foods.map((f) => ({
+      id: f.fdcId,
+      name: f.description,
+      nutrients: f.foodNutrients
+    }));
 
-    const nutrients = {};
-    food.foodNutrients.forEach(n => {
-      nutrients[n.nutrientName] = n.value;
-    });
-
-    res.json({
-      name: food.description,
-      calories: nutrients["Energy"],
-      protein: nutrients["Protein"]
-    });
+    res.json(foods);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "USDA fetch failed" });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));

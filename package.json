@@ -2,8 +2,11 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.84.0",
+    "cors": "^2.8.5",
     "expo": "~54.0.30",
     "expo-router": "~6.0.21",
+    "express": "^5.2.1",
+    "node-fetch": "^2.7.0",
     "react-dom": "19.1.0",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
@@ -12,5 +15,24 @@
   "devDependencies": {
     "@types/react": "~19.1.10",
     "typescript": "~5.9.2"
-  }
+  },
+  "name": "metriqpro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shay12345678/Metriq.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Shay12345678/Metriq/issues"
+  },
+  "homepage": "https://github.com/Shay12345678/Metriq#readme"
 }
