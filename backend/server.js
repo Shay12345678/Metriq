@@ -10,6 +10,7 @@ app.use(express.json());
 
 const USDA_API_KEY = "2NNBrpjZhuGdXhx98EnbZaNsTBTqG5F6SX8OsmtT";
 
+// Search endpoint
 app.get("/search", async (req, res) => {
   const query = req.query.q;
   if (!query) return res.status(400).json({ error: "Query required" });
@@ -25,10 +26,14 @@ app.get("/search", async (req, res) => {
     );
 
     const data = await response.json();
-    const foods = data.foods.map((f) => ({
+    const foods = (data.foods || []).map((f) => ({
       id: f.fdcId,
       name: f.description,
-      nutrients: f.foodNutrients
+      nutrients: f.foodNutrients.map((n) => ({
+        name: n.nutrientName,
+        value: n.value,
+        unit: n.unitName,
+      })),
     }));
 
     res.json(foods);
